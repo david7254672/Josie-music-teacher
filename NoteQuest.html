@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Note Quest 🎵</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d1a;
+  --surface:rgba(255,255,255,0.06);
+  --surface-hover:rgba(255,255,255,0.10);
+  --border:rgba(255,255,255,0.10);
+  --text:#f0f0f8;
+  --muted:rgba(240,240,248,0.55);
+  --primary:#7c3aed;
+  --primary-light:#a855f7;
+  --accent:#ec4899;
+  --success:#10b981;
+  --error:#ef4444;
+  --warn:#f59e0b;
+  --grad:linear-gradient(135deg,#7c3aed 0%,#ec4899 100%);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#root{height:100%}
+.app{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 16px 48px;max-width:700px;margin:0 auto}
+button{cursor:pointer;border:none;font-family:inherit}
+button:focus-visible{outline:2px solid var(--primary-light);outline-offset:3px}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── HOME ─────────────────────────────────────────── */
+.home{width:100%;display:flex;flex-direction:column;align-items:center;padding-top:52px;gap:32px}
+.home-hero{text-align:center;position:relative}
+.home-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;height:220px;background:radial-gradient(ellipse,rgba(124,58,237,0.22) 0%,transparent 70%);pointer-events:none}
+.home-title{font-size:clamp(2.6rem,9vw,4.4rem);font-weight:900;letter-spacing:-2px;line-height:1}
+.home-subtitle{margin-top:10px;font-size:1.05rem;color:var(--muted);font-weight:500}
+.clef-display{margin-top:16px;display:flex;gap:6px;justify-content:center}
+.clef-icon{font-size:60px;line-height:1;font-family:'FreeSerif',Georgia,serif;opacity:0.85}
+.treble-icon{color:var(--primary-light)}.bass-icon{color:var(--accent)}
+.home-cards{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mode-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 20px 24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:transform 0.15s,border-color 0.15s,background 0.15s;overflow:hidden;color:var(--text)}
+.mode-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s}
+.tutorial-card::before{background:linear-gradient(135deg,rgba(124,58,237,0.15),transparent)}
+.game-card::before{background:linear-gradient(135deg,rgba(236,72,153,0.15),transparent)}
+.mode-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,0.2)}
+.mode-card:hover::before{opacity:1}
+.mode-card-icon{font-size:2.4rem}
+.mode-card h2{font-size:1.25rem;font-weight:800}
+.mode-card p{font-size:0.82rem;color:var(--muted);line-height:1.4}
+.mode-card-arrow{position:absolute;bottom:14px;right:16px;font-size:1.1rem;opacity:0.4;transition:opacity 0.15s,right 0.15s}
+.mode-card:hover .mode-card-arrow{opacity:1;right:12px}
+.home-hint{font-size:0.8rem;color:var(--muted)}
+
+/* ── Shared nav ───────────────────────────────────── */
+.back-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;transition:background 0.15s}
+.back-btn:hover{background:var(--surface-hover)}
+.nav-btn{flex:1;padding:14px;border-radius:14px;font-size:1rem;font-weight:700;transition:transform 0.1s,opacity 0.15s}
+.nav-btn:active{transform:scale(0.97)}
+.nav-btn:disabled{opacity:0.3;cursor:default}
+.nav-btn.primary{background:var(--grad);color:white}
+.nav-btn.primary:hover{opacity:0.9}
+.nav-btn.secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.nav-btn.secondary:hover{background:var(--surface-hover)}
+
+/* ── STAFF SVG ────────────────────────────────────── */
+.staff-svg{width:100%;height:auto;color:white;display:block}
+
+/* ── TUTORIAL ─────────────────────────────────────── */
+.tutorial{width:100%;display:flex;flex-direction:column;gap:16px;padding-top:24px}
+.tutorial-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lesson-progress{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;flex:1}
+.progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:background 0.2s,transform 0.2s}
+.progress-dot.done{background:var(--primary)}.progress-dot.active{background:var(--accent);transform:scale(1.3)}
+.lesson-counter{font-size:0.8rem;color:var(--muted);font-weight:600;white-space:nowrap}
+.lesson-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:fadeSlide 0.3s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.lesson-emoji{font-size:2rem}
+.lesson-title{font-size:1.4rem;font-weight:800;text-align:center}
+.lesson-body{font-size:0.95rem;color:var(--muted);line-height:1.65;text-align:center}
+.lesson-body strong{color:var(--text)}
+.lesson-staff-demo{width:100%;max-width:360px;background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;color:white}
+.lesson-tip{display:flex;align-items:center;gap:8px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:10px;padding:10px 14px;font-size:0.88rem;font-weight:600;color:var(--primary-light);width:100%}
+.tip-icon{font-size:1.1rem;flex-shrink:0}
+.lesson-note-sequence{width:100%;display:flex;flex-direction:column;gap:16px}
+.staff-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.staff-tap-btn{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:8px;width:90px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color 0.15s,background 0.15s,transform 0.1s;color:white}
+.staff-tap-btn:hover{background:rgba(255,255,255,0.08);transform:translateY(-2px)}
+.staff-tap-btn.active{border-color:var(--primary-light);background:rgba(168,85,247,0.12)}
+.tap-label{font-size:0.78rem;font-weight:700;color:var(--muted)}
+.staff-tap-btn.active .tap-label{color:var(--primary-light)}
+.mnemonic-display{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.mnemonic-word{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+.mnemonic-note{font-size:1rem;font-weight:900;color:var(--accent)}
+.mnemonic-text{font-size:0.72rem;color:var(--muted);font-weight:500}
+.middle-c-lesson{width:100%}
+.middle-c-staves{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.middle-c-staff-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.middle-c-label{font-size:0.78rem;color:var(--muted);font-weight:600}
+.middle-c-equals{font-size:1.1rem;font-weight:800;color:var(--accent);white-space:nowrap}
+.middle-c-note{text-align:center;font-size:0.82rem;color:var(--muted);margin-top:10px}
+.middle-c-staff-wrap .staff-tap-btn{width:120px}
+.accidentals-lesson{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.accidental-example{display:flex;flex-direction:column;align-items:center;gap:6px}
+.accidental-label{font-size:0.78rem;color:var(--muted);font-weight:600}
+.accidental-example .staff-tap-btn{width:120px}
+.lesson-nav{display:flex;gap:12px;justify-content:space-between}
+
+/* ── GAME ─────────────────────────────────────────── */
+.game{width:100%;display:flex;flex-direction:column;gap:16px;padding-top:24px}
+.game-header{display:flex;align-items:center;justify-content:space-between}
+.game-title{font-size:1.4rem;font-weight:900}
+.setup-screen{display:flex;flex-direction:column;align-items:center;gap:24px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px 24px}
+.setup-title{font-size:1.5rem;font-weight:800}
+.setup-section{width:100%;display:flex;flex-direction:column;gap:10px;align-items:center}
+.setup-label{font-size:0.82rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.toggle-group{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.toggle-btn{padding:10px 18px;border-radius:10px;font-size:0.9rem;font-weight:600;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);transition:all 0.15s}
+.toggle-btn:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+.toggle-btn.active{background:rgba(124,58,237,0.25);border-color:var(--primary-light);color:var(--primary-light)}
+.setup-hint{font-size:0.8rem;color:var(--muted);text-align:center}
+.start-btn{background:var(--grad);color:white;font-size:1.1rem;font-weight:800;padding:16px 48px;border-radius:16px;transition:transform 0.1s,opacity 0.15s;letter-spacing:0.02em}
+.start-btn:hover{opacity:0.9}.start-btn:active{transform:scale(0.97)}
+.score-bar{width:100%;display:flex;flex-direction:column;gap:6px}
+.score-bar-track{width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+.score-bar-fill{height:100%;background:var(--grad);border-radius:99px;transition:width 0.4s ease}
+.score-info{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted)}
+.score-pts strong{color:var(--primary-light)}
+.question-screen{display:flex;flex-direction:column;align-items:center;gap:18px;animation:fadeSlide 0.25s ease;width:100%}
+.question-staff-wrap{position:relative;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:16px;padding:16px;color:white}
+.clef-badge{position:absolute;top:10px;right:12px;font-size:0.75rem;font-weight:700;color:var(--muted);font-family:Georgia,serif}
+.streak-badge{background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;font-size:0.88rem;font-weight:800;padding:5px 14px;border-radius:99px;letter-spacing:0.02em;animation:popIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275)}
+@keyframes popIn{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.question-prompt{font-size:1rem;font-weight:600;color:var(--muted)}
+.choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.choice-btn{background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:14px;color:var(--text);font-size:1.4rem;font-weight:800;padding:20px 12px;transition:all 0.15s;letter-spacing:0.02em}
+.choice-btn:hover:not(:disabled){background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);transform:translateY(-2px)}
+.choice-btn:active:not(:disabled){transform:scale(0.97)}
+.choice-btn.correct{background:rgba(16,185,129,0.2);border-color:var(--success);color:var(--success)}
+.choice-btn.wrong{background:rgba(239,68,68,0.2);border-color:var(--error);color:var(--error)}
+.choice-btn.faded{opacity:0.3}
+.answer-feedback{font-size:1rem;font-weight:700;padding:10px 24px;border-radius:10px;animation:popIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275)}
+.answer-feedback.correct{background:rgba(16,185,129,0.15);color:var(--success)}
+.answer-feedback.wrong{background:rgba(239,68,68,0.15);color:var(--error)}
+.results-screen{width:100%;display:flex;flex-direction:column;align-items:center;gap:24px;animation:fadeSlide 0.3s ease}
+.results-circle{width:130px;height:130px;border-radius:50%;border:4px solid var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.results-score{font-size:2rem;font-weight:900;line-height:1}
+.results-score span{font-size:1rem;font-weight:600;color:var(--muted)}
+.results-pct{font-size:1rem;font-weight:700}
+.results-grade{font-size:1.6rem;font-weight:900}
+.results-breakdown{width:100%;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;padding:4px}
+.result-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:0.88rem}
+.result-row.r-correct{border-left:3px solid var(--success)}.result-row.r-wrong{border-left:3px solid var(--error)}
+.r-num{color:var(--muted);font-weight:600;min-width:20px}.r-clef{font-size:1rem;font-family:Georgia,serif}.r-note{font-weight:800;flex:1}.r-icon{font-weight:700}
+.r-correct .r-icon{color:var(--success)}.r-wrong .r-icon{color:var(--error)}.r-yours{font-size:0.8rem;color:var(--error);opacity:0.8}
+.results-actions{display:flex;gap:12px;width:100%}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px}
+@media(max-width:480px){.home-cards{grid-template-columns:1fr}.staff-row{gap:5px}.staff-tap-btn{width:72px}.choice-btn{font-size:1.2rem;padding:16px 8px}.mnemonic-word{padding:5px 7px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useCallback, useRef } = React;
+
+/* ═══════════════════════════════════════════════════════
+   NOTE DATA
+═══════════════════════════════════════════════════════ */
+const TOP_LINE_Y   = 22;
+const STEP         = 6;
+const BOTTOM_LINE_Y = TOP_LINE_Y + 8 * STEP; // 70
+
+function getLedgerLines(noteY) {
+  const spacing = 12, ledgers = [];
+  if (noteY < TOP_LINE_Y) {
+    for (let y = TOP_LINE_Y - spacing; y >= noteY; y -= spacing) ledgers.push(y);
+  } else if (noteY > BOTTOM_LINE_Y) {
+    for (let y = BOTTOM_LINE_Y + spacing; y <= noteY; y += spacing) ledgers.push(y);
+  }
+  return ledgers;
+}
+
+function mkNote(id, clef, letter, acc, midi, steps, displayName) {
+  const y = TOP_LINE_Y + steps * STEP;
+  return { id, clef, letter, accidental: acc, midi, y, displayName, ledgerLines: getLedgerLines(y) };
+}
+
+// Treble clef: top line = F5 (step 0), steps increase going DOWN
+const TREBLE_NOTES = [
+  mkNote('t-G5','treble','G',null,79,-1,'G'),
+  mkNote('t-F5','treble','F',null,77, 0,'F'),
+  mkNote('t-E5','treble','E',null,76, 1,'E'),
+  mkNote('t-D5','treble','D',null,74, 2,'D'),
+  mkNote('t-C5','treble','C',null,72, 3,'C'),
+  mkNote('t-B4','treble','B',null,71, 4,'B'),
+  mkNote('t-A4','treble','A',null,69, 5,'A'),
+  mkNote('t-G4','treble','G',null,67, 6,'G'),
+  mkNote('t-F4','treble','F',null,65, 7,'F'),
+  mkNote('t-E4','treble','E',null,64, 8,'E'),
+  mkNote('t-D4','treble','D',null,62, 9,'D'),
+  mkNote('t-C4','treble','C',null,60,10,'C'),
+  // Accidentals (C♯, E♭, F♯, A♭, B♭ — no enharmonic duplicates)
+  mkNote('t-Cs5','treble','C','#',73, 3,'C♯'),
+  mkNote('t-Eb5','treble','E','b',75, 1,'E♭'),
+  mkNote('t-Fs5','treble','F','#',78, 0,'F♯'),
+  mkNote('t-Ab4','treble','A','b',68, 5,'A♭'),
+  mkNote('t-Bb4','treble','B','b',70, 4,'B♭'),
+  mkNote('t-Cs4','treble','C','#',61,10,'C♯'),
+  mkNote('t-Eb4','treble','E','b',63, 8,'E♭'),
+  mkNote('t-Fs4','treble','F','#',66, 7,'F♯'),
+];
+
+// Bass clef: top line = A3 (step 0), steps increase going DOWN
+const BASS_NOTES = [
+  mkNote('b-C4','bass','C',null,60,-2,'C'),
+  mkNote('b-B3','bass','B',null,59,-1,'B'),
+  mkNote('b-A3','bass','A',null,57, 0,'A'),
+  mkNote('b-G3','bass','G',null,55, 1,'G'),
+  mkNote('b-F3','bass','F',null,53, 2,'F'),
+  mkNote('b-E3','bass','E',null,52, 3,'E'),
+  mkNote('b-D3','bass','D',null,50, 4,'D'),
+  mkNote('b-C3','bass','C',null,48, 5,'C'),
+  mkNote('b-B2','bass','B',null,47, 6,'B'),
+  mkNote('b-A2','bass','A',null,45, 7,'A'),
+  mkNote('b-G2','bass','G',null,43, 8,'G'),
+  mkNote('b-F2','bass','F',null,41, 9,'F'),
+  mkNote('b-E2','bass','E',null,40,10,'E'),
+  // Accidentals
+  mkNote('b-Cs4','bass','C','#',61,-2,'C♯'),
+  mkNote('b-Bb3','bass','B','b',58,-1,'B♭'),
+  mkNote('b-Ab3','bass','A','b',56, 0,'A♭'),
+  mkNote('b-Fs3','bass','F','#',54, 2,'F♯'),
+  mkNote('b-Eb3','bass','E','b',51, 3,'E♭'),
+  mkNote('b-Cs3','bass','C','#',49, 5,'C♯'),
+  mkNote('b-Bb2','bass','B','b',46, 6,'B♭'),
+  mkNote('b-Ab2','bass','A','b',44, 7,'A♭'),
+  mkNote('b-Fs2','bass','F','#',42, 9,'F♯'),
+];
+
+const ALL_NOTES  = [...TREBLE_NOTES, ...BASS_NOTES];
+const NOTE_BY_ID = Object.fromEntries(ALL_NOTES.map(n => [n.id, n]));
+
+const TREBLE_LINE_IDS  = ['t-E4','t-G4','t-B4','t-D5','t-F5'];
+const TREBLE_SPACE_IDS = ['t-F4','t-A4','t-C5','t-E5'];
+const BASS_LINE_IDS    = ['b-G2','b-B2','b-D3','b-F3','b-A3'];
+const BASS_SPACE_IDS   = ['b-A2','b-C3','b-E3','b-G3'];
+
+function getNotePool(mode, includeAcc) {
+  let pool = [];
+  if (mode === 'treble' || mode === 'both') pool.push(...TREBLE_NOTES);
+  if (mode === 'bass'   || mode === 'both') pool.push(...BASS_NOTES);
+  if (!includeAcc) pool = pool.filter(n => !n.accidental);
+  return pool;
+}
+
+function getChoices(correct, pool) {
+  const allNames = [...new Set(pool.map(n => n.displayName))];
+  const wrong = allNames.filter(nm => nm !== correct.displayName).sort(() => Math.random() - 0.5).slice(0, 3);
+  return [correct.displayName, ...wrong].sort(() => Math.random() - 0.5);
+}
+
+function genQuestions(mode, includeAcc, count = 20) {
+  const pool = getNotePool(mode, includeAcc);
+  return Array.from({ length: count }, () => {
+    const note = pool[Math.floor(Math.random() * pool.length)];
+    return { note, choices: getChoices(note, pool) };
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   AUDIO
+═══════════════════════════════════════════════════════ */
+function useAudio() {
+  const ctxRef = useRef(null);
+  const getCtx = () => {
+    if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctxRef.current.state === 'suspended') ctxRef.current.resume();
+    return ctxRef.current;
+  };
+  const playNote = useCallback((midi) => {
+    const ctx  = getCtx();
+    const freq = 440 * Math.pow(2, (midi - 69) / 12);
+    const master = ctx.createGain();
+    master.connect(ctx.destination);
+    [[1,0.50],[2,0.25],[3,0.12],[4,0.06],[5,0.03]].forEach(([mult, g]) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(master);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq * mult, ctx.currentTime);
+      gain.gain.setValueAtTime(g, ctx.currentTime);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 2.2);
+    });
+    master.gain.setValueAtTime(0, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.01);
+    master.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.4);
+    master.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.2);
+  }, []);
+  return { playNote };
+}
+
+/* ═══════════════════════════════════════════════════════
+   STAFF SVG
+═══════════════════════════════════════════════════════ */
+const STAFF_LINES  = [22, 34, 46, 58, 70];
+const STAFF_LEFT   = 58;
+const STAFF_RIGHT  = 220;
+const NOTE_X       = 155;
+const LEDGER_HALF  = 13;
+const MIDDLE_LINE  = 46;
+
+function Staff({ clef, note, showName = false }) {
+  const noteY  = note?.y;
+  const stemUp = noteY !== undefined && noteY >= MIDDLE_LINE;
+  const stemX  = stemUp ? NOTE_X + 5.5 : NOTE_X - 5.5;
+  const stemY2 = stemUp ? noteY - 32 : noteY + 32;
+
+  return (
+    <svg viewBox="0 0 240 102" className="staff-svg"
+      aria-label={note ? `${note.displayName} on ${clef} clef` : `${clef} clef`}>
+
+      {/* Staff lines */}
+      {STAFF_LINES.map(y =>
+        <line key={y} x1={STAFF_LEFT} y1={y} x2={STAFF_RIGHT} y2={y}
+          stroke="currentColor" strokeWidth="1.5" />
+      )}
+
+      {/* Clef */}
+      {clef === 'treble' && (
+        <text x="10" y="80" fontSize="76" fill="currentColor"
+          fontFamily="'FreeSerif','Bravura',Georgia,serif"
+          style={{userSelect:'none'}}>𝄞</text>
+      )}
+      {clef === 'bass' && (
+        <text x="12" y="60" fontSize="46" fill="currentColor"
+          fontFamily="'FreeSerif','Bravura',Georgia,serif"
+          style={{userSelect:'none'}}>𝄢</text>
+      )}
+
+      {/* Ledger lines */}
+      {note?.ledgerLines.map(y =>
+        <line key={y}
+          x1={NOTE_X - LEDGER_HALF} y1={y} x2={NOTE_X + LEDGER_HALF} y2={y}
+          stroke="currentColor" strokeWidth="1.5" />
+      )}
+
+      {/* Stem */}
+      {note && (
+        <line x1={stemX} y1={noteY} x2={stemX} y2={stemY2}
+          stroke="currentColor" strokeWidth="1.5" />
+      )}
+
+      {/* Accidental */}
+      {note?.accidental === '#' && (
+        <text x={NOTE_X - 20} y={noteY + 5} fill="currentColor"
+          fontSize="15" fontFamily="Georgia,serif" style={{userSelect:'none'}}>♯</text>
+      )}
+      {note?.accidental === 'b' && (
+        <text x={NOTE_X - 18} y={noteY + 5} fill="currentColor"
+          fontSize="16" fontFamily="Georgia,serif" style={{userSelect:'none'}}>♭</text>
+      )}
+
+      {/* Note head */}
+      {note && (
+        <ellipse cx={NOTE_X} cy={noteY} rx={6} ry={4.8} fill="currentColor"
+          transform={`rotate(-18,${NOTE_X},${noteY})`} />
+      )}
+
+      {/* Name label */}
+      {showName && note && (
+        <text x={NOTE_X} y={noteY > 80 ? noteY + 16 : noteY - 12}
+          textAnchor="middle" fill="#a855f7"
+          fontSize="11" fontWeight="700" fontFamily="Inter,sans-serif"
+          style={{userSelect:'none'}}>{note.displayName}</text>
+      )}
+    </svg>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════════════════ */
+function Home({ onNavigate }) {
+  return (
+    <div className="home">
+      <div className="home-hero">
+        <div className="home-glow" />
+        <h1 className="home-title"><span className="gradient-text">Note Quest</span></h1>
+        <p className="home-subtitle">Master musical notes on treble &amp; bass clef</p>
+        <div className="clef-display" aria-hidden="true">
+          <span className="clef-icon treble-icon">𝄞</span>
+          <span className="clef-icon bass-icon">𝄢</span>
+        </div>
+      </div>
+      <div className="home-cards">
+        <button className="mode-card tutorial-card" onClick={() => onNavigate('tutorial')}>
+          <div className="mode-card-icon">📖</div>
+          <h2>Tutorial</h2>
+          <p>Learn notes step by step with mnemonics and tips</p>
+          <div className="mode-card-arrow">→</div>
+        </button>
+        <button className="mode-card game-card" onClick={() => onNavigate('game')}>
+          <div className="mode-card-icon">🎮</div>
+          <h2>Play Game</h2>
+          <p>Test your skills — 20 questions per round</p>
+          <div className="mode-card-arrow">→</div>
+        </button>
+      </div>
+      <p className="home-hint">Choose a mode to get started</p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   TUTORIAL
+═══════════════════════════════════════════════════════ */
+const LESSONS = [
+  {
+    id:'staff-intro', title:'The Musical Staff', emoji:'🎼',
+    body:'Music is written on a set of **5 lines** called a staff. Notes sit ON the lines or IN the spaces between them. The higher the note sits on the staff, the higher it sounds.',
+    tip:null, type:'empty-staff', clef:'treble',
+  },
+  {
+    id:'treble-intro', title:'The Treble Clef', emoji:'𝄞',
+    body:'The treble clef marks **higher-pitched** notes — your **right hand** usually plays these on piano. The curly symbol wraps around the G line, which is why it\'s also called the G clef.',
+    tip:'Right hand = Treble clef', type:'empty-staff', clef:'treble',
+  },
+  {
+    id:'treble-lines', title:'Treble Clef Lines', emoji:'〰️',
+    body:'The 5 lines (bottom → top) are **E · G · B · D · F**. Tap each note to hear it!',
+    tip:'"Every Good Boy Does Fine"',
+    mnemonicWords:['Every','Good','Boy','Does','Fine'],
+    mnemonicNotes:['E','G','B','D','F'],
+    type:'note-sequence', clef:'treble', noteIds:TREBLE_LINE_IDS,
+  },
+  {
+    id:'treble-spaces', title:'Treble Clef Spaces', emoji:'⬜',
+    body:'The 4 spaces (bottom → top) are **F · A · C · E**. They literally spell a word!',
+    tip:'They spell "FACE" — easy to remember!',
+    mnemonicWords:['F','A','C','E'],
+    mnemonicNotes:['F','A','C','E'],
+    type:'note-sequence', clef:'treble', noteIds:TREBLE_SPACE_IDS,
+  },
+  {
+    id:'bass-intro', title:'The Bass Clef', emoji:'𝄢',
+    body:'The bass clef marks **lower-pitched** notes — your **left hand** usually plays these. The two dots sit around the F line, making it the F clef.',
+    tip:'Left hand = Bass clef', type:'empty-staff', clef:'bass',
+  },
+  {
+    id:'bass-lines', title:'Bass Clef Lines', emoji:'〰️',
+    body:'The 5 lines (bottom → top) are **G · B · D · F · A**. Tap each one to hear it.',
+    tip:'"Good Boys Do Fine Always"',
+    mnemonicWords:['Good','Boys','Do','Fine','Always'],
+    mnemonicNotes:['G','B','D','F','A'],
+    type:'note-sequence', clef:'bass', noteIds:BASS_LINE_IDS,
+  },
+  {
+    id:'bass-spaces', title:'Bass Clef Spaces', emoji:'⬜',
+    body:'The 4 spaces (bottom → top) are **A · C · E · G**. Tap each to hear it.',
+    tip:'"All Cows Eat Grass"',
+    mnemonicWords:['All','Cows','Eat','Grass'],
+    mnemonicNotes:['A','C','E','G'],
+    type:'note-sequence', clef:'bass', noteIds:BASS_SPACE_IDS,
+  },
+  {
+    id:'middle-c', title:'Middle C — The Bridge', emoji:'🌉',
+    body:'**Middle C** lives on a short extra line called a **ledger line**. In treble clef it\'s just below the staff; in bass clef it\'s just above. It\'s literally between both hands on the piano!',
+    tip:'Middle C connects both clefs', type:'middle-c',
+  },
+  {
+    id:'accidentals', title:'Sharps ♯ and Flats ♭', emoji:'🎹',
+    body:'A **sharp (♯)** raises a note by one half-step. A **flat (♭)** lowers it by one half-step. The symbol always appears to the **left** of the note head. Tap the examples below.',
+    tip:'♯ = one black key up · ♭ = one black key down',
+    type:'accidentals',
+    examples:[{id:'t-Fs4',label:'F♯ in treble'},{id:'t-Bb4',label:'B♭ in treble'}],
+  },
+  {
+    id:'ready', title:"You're Ready!", emoji:'🚀',
+    body:'You\'ve learned the essentials! Head to the game to test yourself. Choose treble, bass, or both — and toggle sharps and flats when you\'re ready for the next challenge.',
+    tip:'Even pro musicians practice every day — keep going!',
+    type:'ready',
+  },
+];
+
+function renderBody(text) {
+  return text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  );
+}
+
+function MnemonicRow({ words, notes }) {
+  return (
+    <div className="mnemonic-display">
+      {words.map((word, i) => (
+        <div key={i} className="mnemonic-word">
+          <span className="mnemonic-note">{notes[i]}</span>
+          <span className="mnemonic-text">{word}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function NoteSequenceLesson({ lesson, playNote }) {
+  const [activeIdx, setActiveIdx] = useState(null);
+  const notes = lesson.noteIds.map(id => NOTE_BY_ID[id]);
+  return (
+    <div className="lesson-note-sequence">
+      <div className="staff-row">
+        {notes.map((note, idx) => (
+          <button key={note.id}
+            className={`staff-tap-btn${activeIdx === idx ? ' active' : ''}`}
+            onClick={() => { setActiveIdx(idx); playNote(note.midi); }}>
+            <Staff clef={lesson.clef} note={note} showName={activeIdx === idx} />
+            <span className="tap-label">{note.displayName}</span>
+          </button>
+        ))}
+      </div>
+      {lesson.mnemonicWords && <MnemonicRow words={lesson.mnemonicWords} notes={lesson.mnemonicNotes} />}
+    </div>
+  );
+}
+
+function MiddleCLesson({ playNote }) {
+  const [active, setActive] = useState(null);
+  const trebleC = NOTE_BY_ID['t-C4'], bassC = NOTE_BY_ID['b-C4'];
+  return (
+    <div className="middle-c-lesson">
+      <div className="middle-c-staves">
+        <div className="middle-c-staff-wrap">
+          <p className="middle-c-label">Treble clef</p>
+          <button className={`staff-tap-btn${active==='t'?' active':''}`}
+            onClick={() => { setActive('t'); playNote(trebleC.midi); }}>
+            <Staff clef="treble" note={trebleC} showName={active==='t'} />
+          </button>
+        </div>
+        <div className="middle-c-equals">= C =</div>
+        <div className="middle-c-staff-wrap">
+          <p className="middle-c-label">Bass clef</p>
+          <button className={`staff-tap-btn${active==='b'?' active':''}`}
+            onClick={() => { setActive('b'); playNote(bassC.midi); }}>
+            <Staff clef="bass" note={bassC} showName={active==='b'} />
+          </button>
+        </div>
+      </div>
+      <p className="middle-c-note">Tap either staff to hear Middle C</p>
+    </div>
+  );
+}
+
+function AccidentalsLesson({ examples, playNote }) {
+  const [active, setActive] = useState(null);
+  return (
+    <div className="accidentals-lesson">
+      {examples.map(({ id, label }) => {
+        const note = NOTE_BY_ID[id];
+        return (
+          <div key={id} className="accidental-example">
+            <button className={`staff-tap-btn${active===id?' active':''}`}
+              onClick={() => { setActive(id); playNote(note.midi); }}>
+              <Staff clef={note.clef} note={note} showName={active===id} />
+            </button>
+            <p className="accidental-label">{label}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Tutorial({ onNavigate }) {
+  const [idx, setIdx] = useState(0);
+  const { playNote } = useAudio();
+  const lesson = LESSONS[idx];
+  const isLast = idx === LESSONS.length - 1;
+
+  return (
+    <div className="tutorial">
+      <div className="tutorial-header">
+        <button className="back-btn" onClick={() => onNavigate('home')}>← Home</button>
+        <div className="lesson-progress">
+          {LESSONS.map((_, i) => (
+            <div key={i} className={`progress-dot${i===idx?' active':i<idx?' done':''}`}
+              onClick={() => setIdx(i)} />
+          ))}
+        </div>
+        <span className="lesson-counter">{idx+1}/{LESSONS.length}</span>
+      </div>
+
+      <div className="lesson-card" key={lesson.id}>
+        <div className="lesson-emoji">{lesson.emoji}</div>
+        <h2 className="lesson-title">{lesson.title}</h2>
+        <p className="lesson-body">{renderBody(lesson.body)}</p>
+
+        {lesson.type === 'empty-staff' && (
+          <div className="lesson-staff-demo">
+            <Staff clef={lesson.clef} note={null} />
+          </div>
+        )}
+        {lesson.type === 'note-sequence' && <NoteSequenceLesson lesson={lesson} playNote={playNote} />}
+        {lesson.type === 'middle-c'      && <MiddleCLesson playNote={playNote} />}
+        {lesson.type === 'accidentals'   && <AccidentalsLesson examples={lesson.examples} playNote={playNote} />}
+
+        {lesson.tip && (
+          <div className="lesson-tip">
+            <span className="tip-icon">💡</span>
+            <span>{lesson.tip}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="lesson-nav">
+        <button className="nav-btn secondary" onClick={() => setIdx(i=>i-1)} disabled={idx===0}>← Back</button>
+        {isLast
+          ? <button className="nav-btn primary" onClick={() => onNavigate('game')}>Play Game 🎮</button>
+          : <button className="nav-btn primary" onClick={() => setIdx(i=>i+1)}>Next →</button>
+        }
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   GAME
+═══════════════════════════════════════════════════════ */
+const TOTAL = 20;
+
+function SetupScreen({ onStart }) {
+  const [mode, setMode]  = useState('treble');
+  const [acc, setAcc]    = useState(false);
+  return (
+    <div className="setup-screen">
+      <h2 className="setup-title">Game Setup</h2>
+      <div className="setup-section">
+        <p className="setup-label">Clef Mode</p>
+        <div className="toggle-group">
+          {[['treble','𝄞 Treble'],['bass','𝄢 Bass'],['both','𝄞𝄢 Both']].map(([m,label]) => (
+            <button key={m} className={`toggle-btn${mode===m?' active':''}`} onClick={() => setMode(m)}>{label}</button>
+          ))}
+        </div>
+      </div>
+      <div className="setup-section">
+        <p className="setup-label">Difficulty</p>
+        <div className="toggle-group">
+          <button className={`toggle-btn${!acc?' active':''}`} onClick={() => setAcc(false)}>Natural notes only</button>
+          <button className={`toggle-btn${acc?' active':''}`}  onClick={() => setAcc(true)}>Include ♯ and ♭</button>
+        </div>
+      </div>
+      <p className="setup-hint">20 questions · multiple choice · note sounds on reveal</p>
+      <button className="start-btn" onClick={() => onStart(mode, acc)}>Start Game →</button>
+    </div>
+  );
+}
+
+function QuestionScreen({ question, score, streak, onAnswer, answered, correctName }) {
+  const { note, choices } = question;
+  return (
+    <div className="question-screen">
+      <div className="question-staff-wrap">
+        <Staff clef={note.clef} note={note} />
+        <div className="clef-badge">{note.clef==='treble'?'𝄞 Treble':'𝄢 Bass'}</div>
+      </div>
+      {streak >= 3 && !answered && <div className="streak-badge">🔥 {streak} streak!</div>}
+      <p className="question-prompt">What note is this?</p>
+      <div className="choices-grid">
+        {choices.map(name => {
+          let cls = 'choice-btn';
+          if (answered) {
+            if (name === correctName)                     cls += ' correct';
+            else if (name === answered)                   cls += ' wrong';
+            else                                          cls += ' faded';
+          }
+          return (
+            <button key={name} className={cls}
+              onClick={() => !answered && onAnswer(name)} disabled={!!answered}>
+              {name}
+            </button>
+          );
+        })}
+      </div>
+      {answered && (
+        <div className={`answer-feedback${answered===correctName?' correct':' wrong'}`}>
+          {answered === correctName ? `✓ Correct! +1` : `✗ It was ${correctName}`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResultsScreen({ score, total, history, onRestart, onHome }) {
+  const pct = Math.round(score / total * 100);
+  const [grade, gradeColor] =
+    pct >= 90 ? ['Amazing! 🌟', '#10b981'] :
+    pct >= 70 ? ['Great job! 🎉', '#a855f7'] :
+    pct >= 50 ? ['Getting there! 💪', '#f59e0b'] :
+                ['Keep practicing! 🎹', '#ef4444'];
+  return (
+    <div className="results-screen">
+      <div className="results-circle" style={{ borderColor: gradeColor }}>
+        <div className="results-score">{score}<span>/{total}</span></div>
+        <div className="results-pct" style={{ color: gradeColor }}>{pct}%</div>
+      </div>
+      <h2 className="results-grade" style={{ color: gradeColor }}>{grade}</h2>
+      <div className="results-breakdown">
+        {history.map(({ note, userAnswer }, i) => {
+          const ok = userAnswer === note.displayName;
+          return (
+            <div key={i} className={`result-row${ok?' r-correct':' r-wrong'}`}>
+              <span className="r-num">{i+1}</span>
+              <span className="r-clef">{note.clef==='treble'?'𝄞':'𝄢'}</span>
+              <span className="r-note">{note.displayName}</span>
+              <span className="r-icon">{ok?'✓':'✗'}</span>
+              {!ok && <span className="r-yours">you said: {userAnswer}</span>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="results-actions">
+        <button className="nav-btn primary"    onClick={onRestart}>Play Again</button>
+        <button className="nav-btn secondary"  onClick={onHome}>Home</button>
+      </div>
+    </div>
+  );
+}
+
+function Game({ onNavigate }) {
+  const [phase,    setPhase]    = useState('setup');
+  const [questions,setQuestions]= useState([]);
+  const [qIdx,     setQIdx]     = useState(0);
+  const [score,    setScore]    = useState(0);
+  const [streak,   setStreak]   = useState(0);
+  const [answered, setAnswered] = useState(null);
+  const [history,  setHistory]  = useState([]);
+  const { playNote } = useAudio();
+
+  const currentQ = questions[qIdx];
+
+  function handleStart(mode, acc) {
+    setQuestions(genQuestions(mode, acc, TOTAL));
+    setQIdx(0); setScore(0); setStreak(0); setAnswered(null); setHistory([]);
+    setPhase('playing');
+  }
+
+  function handleAnswer(chosen) {
+    const correct = currentQ.note.displayName;
+    const isRight = chosen === correct;
+    setAnswered(chosen);
+    playNote(currentQ.note.midi);
+    if (isRight) { setScore(s=>s+1); setStreak(s=>s+1); } else { setStreak(0); }
+    setHistory(h => [...h, { note: currentQ.note, userAnswer: chosen }]);
+    setTimeout(() => {
+      if (qIdx + 1 >= TOTAL) { setPhase('results'); }
+      else { setQIdx(i=>i+1); setAnswered(null); }
+    }, 1200);
+  }
+
+  const header = (title) => (
+    <div className="game-header">
+      <button className="back-btn" onClick={() => onNavigate('home')}>← Home</button>
+      <h1 className="game-title gradient-text">{title}</h1>
+      <div/>
+    </div>
+  );
+
+  if (phase === 'setup') return (
+    <div className="game">{header('Game')}<SetupScreen onStart={handleStart}/></div>
+  );
+
+  if (phase === 'results') return (
+    <div className="game">
+      {header('Results')}
+      <ResultsScreen score={score} total={TOTAL} history={history}
+        onRestart={() => setPhase('setup')} onHome={() => onNavigate('home')} />
+    </div>
+  );
+
+  return (
+    <div className="game">
+      {header('Game')}
+      <div className="score-bar">
+        <div className="score-bar-track">
+          <div className="score-bar-fill" style={{ width: `${(qIdx/TOTAL)*100}%` }} />
+        </div>
+        <div className="score-info">
+          <span className="score-count">{qIdx}/{TOTAL}</span>
+          <span className="score-pts">Score: <strong>{score}</strong></span>
+        </div>
+      </div>
+      {currentQ && (
+        <QuestionScreen key={qIdx} question={currentQ} score={score} streak={streak}
+          onAnswer={handleAnswer} answered={answered} correctName={currentQ.note.displayName} />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   APP ROOT
+═══════════════════════════════════════════════════════ */
+function App() {
+  const [screen, setScreen] = useState('home');
+  return (
+    <div className="app">
+      {screen === 'home'     && <Home     onNavigate={setScreen} />}
+      {screen === 'tutorial' && <Tutorial onNavigate={setScreen} />}
+      {screen === 'game'     && <Game     onNavigate={setScreen} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
